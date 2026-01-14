@@ -1,21 +1,37 @@
-'use client';
+ 'use client';
 
-import Editor from '@monaco-editor/react';
-import { useCode } from '../contexts/CodeContext';
+import Editor from "@monaco-editor/react";
+import { useCode } from "../contexts/CodeContext";
+import { Button } from "./ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 
 export default function CodeEditor() {
-  const { code, setCode, language, setLanguage, resetCode, submitCode } = useCode();
+  const { code, setCode, language, setLanguage, resetCode, submitCode } =
+    useCode();
 
   return (
-    <div className="flex h-full flex-col bg-gray-900">
-      {/* Editor Header */}
-      <div className="border-b border-gray-700 bg-gray-800 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">Code Editor</h2>
+    <Card className="flex h-full flex-col border-gray-200/60 bg-slate-950/90 text-slate-50 backdrop-blur">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-semibold">
+            Code Editor
+          </CardTitle>
+          <p className="text-xs text-slate-400">
+            Write and refine your solution while chatting with the AI.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-400">Language</span>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as any)}
-            className="rounded-md border border-gray-600 bg-gray-700 px-3 py-1.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="h-8 rounded-md border border-slate-700/80 bg-slate-900/80 px-2.5 text-xs text-slate-100 shadow-sm outline-none ring-1 ring-transparent transition focus:border-blue-500 focus:ring-blue-500/60"
           >
             <option value="javascript">JavaScript</option>
             <option value="python">Python</option>
@@ -23,15 +39,14 @@ export default function CodeEditor() {
             <option value="cpp">C++</option>
           </select>
         </div>
-      </div>
+      </CardHeader>
 
-      {/* Monaco Code Editor */}
-      <div className="flex-1 overflow-hidden">
+      <CardContent className="flex-1 overflow-hidden p-0">
         <Editor
           height="100%"
           language={language}
           value={code}
-          onChange={(value) => setCode(value || '')}
+          onChange={(value) => setCode(value || "")}
           theme="vs-dark"
           options={{
             fontSize: 14,
@@ -39,34 +54,43 @@ export default function CodeEditor() {
             scrollBeyondLastLine: false,
             automaticLayout: true,
             tabSize: 2,
-            wordWrap: 'on',
+            wordWrap: "on",
             formatOnPaste: true,
             formatOnType: true,
           }}
         />
-      </div>
+      </CardContent>
 
-      {/* Editor Footer with Actions */}
-      <div className="border-t border-gray-700 bg-gray-800 px-6 py-4">
-        <div className="flex gap-3">
-          <button className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+      <CardFooter className="flex items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-950/90 px-4 py-3">
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="bg-emerald-600 text-white hover:bg-emerald-500"
+          >
             Run Code
-          </button>
-          <button 
+          </Button>
+          <Button
+            type="button"
+            size="sm"
             onClick={submitCode}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+            className="bg-blue-600 text-white hover:bg-blue-500"
           >
-            Submit Solution
-          </button>
-          <button 
-            onClick={resetCode}
-            className="rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-          >
-            Reset
-          </button>
+            Submit solution
+          </Button>
         </div>
-      </div>
-    </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={resetCode}
+          className="border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+        >
+          Reset
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
 
