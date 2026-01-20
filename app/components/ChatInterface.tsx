@@ -6,14 +6,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { Spinner } from "./ui/spinner";
 
@@ -172,15 +164,13 @@ export default function ChatInterface() {
   };
 
   return (
-    <Card className="flex h-full flex-col border-gray-200/60 bg-white/80 backdrop-blur dark:border-gray-800/60 dark:bg-gray-950/80">
-      <CardHeader className="gap-1">
-        <CardTitle>AI Interview Assistant</CardTitle>
-        <CardDescription>
-          Conversational coding interview with live code context.
-        </CardDescription>
-      </CardHeader>
+    <div className="flex h-full flex-col bg-slate-950">
+      <div className="shrink-0 border-b border-slate-800/60 px-4 py-3">
+        <h2 className="text-sm font-semibold text-zinc-100">AI Interview Assistant</h2>
+        <p className="text-xs text-zinc-500">Conversational coding interview with live code context.</p>
+      </div>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+      <div className="flex min-h-0 flex-1 flex-col">
         <ScrollArea className="flex-1 space-y-4 px-4 py-3">
           {messages.map((message) => (
             <div
@@ -224,16 +214,16 @@ export default function ChatInterface() {
             </div>
           )}
         </ScrollArea>
-      </CardContent>
+      </div>
 
-      <CardFooter className="gap-2 border-t border-gray-100/80 bg-gray-50/80 px-4 py-3 dark:border-gray-800/80 dark:bg-gray-950/80">
+      <div className="flex shrink-0 items-center gap-2 border-t border-slate-800/60 bg-slate-900/80 px-4 py-3">
         <Input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Ask a question or describe a problem..."
-          className="flex-1"
+          className="flex-1 border-slate-700 bg-slate-900 text-zinc-100 placeholder:text-zinc-500"
         />
         <Button
           onClick={handleSend}
@@ -242,8 +232,8 @@ export default function ChatInterface() {
         >
           {isLoading ? "Sending..." : "Send"}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
 
