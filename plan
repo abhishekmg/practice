@@ -6,6 +6,10 @@ Next steps
 - finally ask questions
 - own api key 
 - user can update questions and reset progress 
+    - user can add a category or delete a category 
+        - check for duplicate categories
+    - use can add or delete a problem 
+        - check for duplicate problem
 
 Bugs: 
 - multiple api calls 

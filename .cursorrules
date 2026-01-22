@@ -1,5 +1,15 @@
 # Cursor Rules for Practice App
 
+## Component Library Rule
+
+**CRITICAL: Always use shadcn/ui components from https://ui.shadcn.com/**
+
+- **Never create custom UI components** - always use shadcn/ui components
+- **Install components using:** `pnpm dlx shadcn@latest add [component-name]`
+- **Available components:** Button, Input, Dialog, Select, Label, Card, etc.
+- **If a component doesn't exist in shadcn/ui, check the registry first before creating custom**
+- **All UI components should be in:** `app/components/ui/`
+
 ## Documentation Maintenance Rule
 
 **CRITICAL: Always update documentation when making changes to:**

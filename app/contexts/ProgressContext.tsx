@@ -17,6 +17,7 @@ export interface CategoryWithProblems {
   name: string;
   icon: string;
   order_index: number;
+  created_by: string | null;
   problems: Problem[];
 }
 
@@ -45,6 +46,10 @@ interface ProgressContextType {
   
   // Refresh data
   refreshData: () => Promise<void>;
+  
+  // Delete functions
+  deleteCategory: (categoryId: string) => Promise<void>;
+  deleteProblem: (problemId: string) => Promise<void>;
 }
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -100,6 +105,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         name: cat.name,
         icon: cat.icon || '',
         order_index: cat.order_index,
+        created_by: (cat as any).created_by || null,
         problems: probs.filter((p) => p.category_id === cat.id),
       }));
 
@@ -209,6 +215,44 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return completedProblems.size;
   }, [completedProblems]);
 
+  // Delete category
+  const deleteCategory = useCallback(async (categoryId: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', categoryId)
+      .eq('created_by', user.id);
+
+    if (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
+
+    // Refresh data
+    await refreshData();
+  }, [user, refreshData]);
+
+  // Delete problem
+  const deleteProblem = useCallback(async (problemId: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('problems')
+      .delete()
+      .eq('id', problemId)
+      .eq('created_by', user.id);
+
+    if (error) {
+      console.error('Error deleting problem:', error);
+      throw error;
+    }
+
+    // Refresh data
+    await refreshData();
+  }, [user, refreshData]);
+
   // Get total problems count
   const getTotalProblems = useCallback(() => {
     return categories.reduce((acc, cat) => acc + cat.problems.length, 0);
@@ -230,6 +274,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         setMode,
         activeRoadmapId,
         refreshData,
+        deleteCategory,
+        deleteProblem,
       }}
     >
       {children}
