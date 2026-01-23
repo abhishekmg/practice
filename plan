@@ -10,12 +10,16 @@ Next steps
         - check for duplicate categories
     - use can add or delete a problem 
         - check for duplicate problem
+- user needs to log in before using the app 
 
 Bugs: 
-- multiple api calls 
-- we are directly calling supabse is this safe ? 
+- multiple api calls -done
+- we are directly calling supabse is this safe ? - done
+- chat scroll down 
+- chat bubble width
 
 v2: 
 - user can update the promts
 - use animated components
 - search for problems
+- code runner
