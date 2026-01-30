@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 // ============================================================================
 // INTERVIEW MODE - Professional interviewer persona
@@ -256,14 +255,21 @@ function getBoilerplate(problemTitle: string, language: string): { code: string;
 
 export async function POST(request: Request) {
   try {
-    const { messages, code, language, problemContext, requestBoilerplateOnly } = await request.json();
+    const userApiKey = request.headers.get('x-google-api-key')?.trim();
+    const serverKey = process.env.GOOGLE_API_KEY?.trim();
+    const apiKey = (userApiKey && userApiKey.length > 0) ? userApiKey : serverKey;
 
-    if (!process.env.GOOGLE_API_KEY) {
+    if (!apiKey) {
       return NextResponse.json(
-        { error: 'GOOGLE_API_KEY is not configured' },
-        { status: 500 }
+        {
+          error: 'No API key provided. Add your Google AI (Gemini) key in Settings, or ask the app owner to set GOOGLE_API_KEY.',
+        },
+        { status: 400 }
       );
     }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const { messages, code, language, problemContext, requestBoilerplateOnly } = await request.json();
 
     // Fast path: if just requesting boilerplate, try to return from cache first
     if (requestBoilerplateOnly && problemContext) {

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCode } from "../contexts/CodeContext";
 import { useProgress } from "../contexts/ProgressContext";
+import { useApiKey } from "../contexts/ApiKeyContext";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Button } from "./ui/button";
@@ -30,9 +31,18 @@ const getInitialMessage = (mode: 'roadmap' | 'interview', problemTitle?: string,
   };
 };
 
+function chatHeaders(googleApiKey: string | null): HeadersInit {
+  const h: HeadersInit = { "Content-Type": "application/json" };
+  if (googleApiKey) {
+    (h as Record<string, string>)["x-google-api-key"] = googleApiKey;
+  }
+  return h;
+}
+
 export default function ChatInterface() {
   const { code, language, setOnSubmit, setCode, setLanguage, resetCode } = useCode();
   const { selectedProblem, mode, markComplete } = useProgress();
+  const { googleApiKey } = useApiKey();
   const prevProblemRef = useRef<string | null>(null);
   
   const [messages, setMessages] = useState<Message[]>([
@@ -68,9 +78,7 @@ export default function ChatInterface() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: chatHeaders(googleApiKey),
         body: JSON.stringify({
           messages: [
             { role: "user", content: `Please provide me the LeetCode-style function boilerplate for the "${title}" problem. Just give me the starter code template, no explanation needed yet.` }
@@ -117,9 +125,7 @@ export default function ChatInterface() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: chatHeaders(googleApiKey),
         body: JSON.stringify({
           messages: newMessages,
           code,
@@ -139,7 +145,7 @@ export default function ChatInterface() {
           ...newMessages,
           {
             role: "assistant",
-            content: `Error: ${data.error}. Please check your API key configuration.`,
+            content: `Error: ${data.error} Add your key in **Settings → API key** if you want to use your own Google AI key.`,
           },
         ]);
         setIsLoading(false);
@@ -178,7 +184,7 @@ export default function ChatInterface() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, code, language, setCode, setLanguage, selectedProblem, markComplete]);
+  }, [messages, code, language, setCode, setLanguage, selectedProblem, markComplete, googleApiKey]);
 
   useEffect(() => {
     setOnSubmit(handleSubmitCode);
@@ -198,9 +204,7 @@ export default function ChatInterface() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: chatHeaders(googleApiKey),
         body: JSON.stringify({
           messages: newMessages,
           code,
@@ -221,7 +225,7 @@ export default function ChatInterface() {
           ...newMessages,
           {
             role: "assistant",
-            content: `Error: ${data.error}. Please check your API key configuration.`,
+            content: `Error: ${data.error} Add your key in **Settings → API key** if you want to use your own Google AI key.`,
           },
         ]);
         setIsLoading(false);

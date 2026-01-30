@@ -221,12 +221,14 @@ practice/
 │   │       └── route.ts          # AI chat API endpoint
 │   ├── components/
 │   │   ├── ui/                    # Reusable UI components (shadcn-style)
+│   │   ├── ApiKeyModal.tsx        # Bring-your-own API key settings
 │   │   ├── AuthModal.tsx          # Login/signup modal
 │   │   ├── ChatInterface.tsx      # AI chat interface
 │   │   ├── CodeEditor.tsx          # Monaco code editor
 │   │   ├── ResizablePanels.tsx    # Resizable split view
 │   │   └── Sidebar.tsx            # Problem list sidebar
 │   ├── contexts/
+│   │   ├── ApiKeyContext.tsx      # User API key (localStorage, BYOK)
 │   │   ├── AuthContext.tsx        # Authentication state
 │   │   ├── CodeContext.tsx        # Code editor state
 │   │   └── ProgressContext.tsx    # Progress & problem state
@@ -296,8 +298,9 @@ Sidebar updates progress bar
 ```
 User sends message → ChatInterface.handleSend()
         ↓
-POST /api/chat
+POST /api/chat (optional header: x-google-api-key from ApiKeyContext)
         ↓
+- Uses user’s key if provided, else server GOOGLE_API_KEY
 - Determines mode (Mentor vs Interviewer)
 - Calls Google Gemini API
 - Extracts code template if present
@@ -328,6 +331,23 @@ ChatInterface updates messages & code editor
 - `signOut()` - Sign out current user
 
 **Usage:** Wraps entire app in `page.tsx`
+
+---
+
+#### `ApiKeyContext`
+**Purpose:** Bring-your-own API key (BYOK) for Google AI (Gemini)
+
+**State:**
+- `googleApiKey` - User’s key (or null)
+- `hasUserApiKey` - Whether a key is stored
+- `maskedKeyHint` - Masked preview (e.g. `••••••••xyz1`)
+
+**Methods:**
+- `setGoogleApiKey(key)` - Save or clear key (persisted in localStorage)
+
+**Storage:** Key is stored only in the browser (`localStorage`). It is sent per-request in the `x-google-api-key` header to `/api/chat` and is never stored on the server.
+
+**Usage:** Wraps the practice app (with AuthProvider). Sidebar opens `ApiKeyModal`; `ChatInterface` sends the key in chat requests when set.
 
 ---
 
@@ -379,9 +399,24 @@ ChatInterface updates messages & code editor
 - Category accordion with progress bars
 - Problem list with difficulty badges
 - User authentication UI (login button or user info)
+- **"Add API key" / "API key saved"** button to open API key settings (BYOK)
 - Progress summary at top
 
-**Data Source:** `ProgressContext`
+**Data Source:** `ProgressContext`, `useApiKey` for BYOK state
+
+---
+
+#### `ApiKeyModal`
+**Purpose:** Configure bring-your-own Google AI (Gemini) API key
+
+**Features:**
+- Password-style input for API key
+- Link to Google AI Studio to obtain a key
+- Save key (stored in localStorage via `ApiKeyContext`)
+- Remove key
+- Masked hint when a key is already saved
+
+**Usage:** Opened from Sidebar when user clicks "Add API key" / "API key saved".
 
 ---
 
@@ -394,12 +429,13 @@ ChatInterface updates messages & code editor
 - Loading indicators
 - Code template injection
 - Progress tracking (marks complete on [PASS])
+- Sends `x-google-api-key` header when user has set a key (BYOK)
 
 **Modes:**
 - **Roadmap (Mentor):** Teaching-focused, step-by-step guidance
 - **Interview:** Evaluative, simulates real interview
 
-**API Integration:** Calls `/api/chat` with problem context
+**API Integration:** Calls `/api/chat` with problem context and optional API key header
 
 ---
 
@@ -432,6 +468,9 @@ ChatInterface updates messages & code editor
 #### `POST /api/chat`
 **Purpose:** AI chat endpoint
 
+**Request Headers:**
+- `x-google-api-key` (optional): User’s Google AI (Gemini) API key. When present and non-empty, it is used instead of the server’s `GOOGLE_API_KEY`. Enables bring-your-own-api-key (BYOK).
+
 **Request Body:**
 ```typescript
 {
@@ -456,6 +495,8 @@ ChatInterface updates messages & code editor
   passed?: boolean            // Whether solution passed
 }
 ```
+
+**Key resolution:** Uses `x-google-api-key` header if provided and non-empty; otherwise uses `GOOGLE_API_KEY` env. If neither is set, returns 400 with a message asking the user to add an API key or for the app to be configured.
 
 **AI Personas:**
 - **Mentor Mode** (when `problemContext` provided): Teaching-focused, explains concepts
@@ -561,6 +602,16 @@ ChatInterface updates messages & code editor
 
 ---
 
+### 6. Bring Your Own API Key (BYOK)
+
+- **Purpose:** Users can supply their own Google AI (Gemini) API key so usage is billed to their Google Cloud / AI Studio account.
+- **Storage:** Key is stored only in the browser (`localStorage`). It is never persisted on the server.
+- **Usage:** When set, the key is sent in the `x-google-api-key` header on every `/api/chat` request. The server uses it for that request instead of `GOOGLE_API_KEY`.
+- **UI:** Sidebar shows “Add API key” or “API key saved”; opening it shows `ApiKeyModal` with input, link to [Google AI Studio](https://aistudio.google.com/apikey), and options to save or remove the key.
+- **Fallback:** If no user key is provided, the app uses the server’s `GOOGLE_API_KEY` when configured.
+
+---
+
 ## Future Extensibility
 
 The database schema is designed to support future features:
@@ -594,9 +645,11 @@ Required environment variables:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-# Google AI
+# Google AI (optional if users bring their own key via Settings → API key)
 GOOGLE_API_KEY=your-google-api-key
 ```
+
+When `GOOGLE_API_KEY` is not set, the app works for users who add their own key in **Settings → API key** in the sidebar. If neither the header nor the env key is present, `/api/chat` returns 400 with an explanatory message.
 
 ---
 

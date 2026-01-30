@@ -5,12 +5,17 @@ Next steps
 - teach problem 
 - finally ask questions
 - own api key 
+    - if not BYO key then view usage
+    - its storing it in localStorage is this safe ? 
 - user can update questions and reset progress 
     - user can add a category or delete a category 
         - check for duplicate categories
     - use can add or delete a problem 
         - check for duplicate problem
 - user needs to log in before using the app 
+
+- need to track bugs and failures
+
 
 Bugs: 
 - multiple api calls -done

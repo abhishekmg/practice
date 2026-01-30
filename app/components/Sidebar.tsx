@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useProgress, getTotalProblemsFromCategories, type CategoryWithProblems } from '../contexts/ProgressContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useApiKey } from '../contexts/ApiKeyContext';
 import type { Problem } from '@/lib/database.types';
 import AuthModal from './AuthModal';
+import ApiKeyModal from './ApiKeyModal';
 import CreateCategoryModal from './CreateCategoryModal';
 import CreateProblemModal from './CreateProblemModal';
 import { Button } from './ui/button';
@@ -18,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
-import { Plus, Trash2 } from 'lucide-react';
+import { Key, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
@@ -273,7 +275,9 @@ function CategorySection({
 export default function Sidebar() {
   const { mode, setMode, getCompletedCount, setSelectedProblem, categories, isLoadingData } = useProgress();
   const { user, signOut, isLoading: isAuthLoading } = useAuth();
+  const { hasUserApiKey } = useApiKey();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const [showCreateProblemModal, setShowCreateProblemModal] = useState(false);
   const [selectedCategoryForProblem, setSelectedCategoryForProblem] = useState<string | undefined>();
@@ -289,18 +293,28 @@ export default function Sidebar() {
           {isAuthLoading ? (
             <div className="h-10 animate-pulse rounded bg-slate-800" />
           ) : user ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
-                  {user.email?.[0]?.toUpperCase() || 'U'}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-medium text-white">
+                    {user.email?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <span className="truncate text-sm text-zinc-300">{user.email}</span>
                 </div>
-                <span className="truncate text-sm text-zinc-300">{user.email}</span>
+                <button
+                  onClick={signOut}
+                  className="shrink-0 text-xs text-zinc-500 hover:text-zinc-300"
+                >
+                  Sign out
+                </button>
               </div>
               <button
-                onClick={signOut}
-                className="shrink-0 text-xs text-zinc-500 hover:text-zinc-300"
+                onClick={() => setShowApiKeyModal(true)}
+                className="flex w-full items-center gap-2 rounded-md border border-slate-700/80 bg-slate-900/50 px-2 py-1.5 text-xs text-zinc-400 transition hover:bg-slate-800/50 hover:text-zinc-300"
+                title="Use your own Google AI API key"
               >
-                Sign out
+                <Key className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{hasUserApiKey ? 'API key saved' : 'Add API key'}</span>
               </button>
             </div>
           ) : (
@@ -432,6 +446,7 @@ export default function Sidebar() {
       </aside>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <ApiKeyModal key={showApiKeyModal ? 'open' : 'closed'} isOpen={showApiKeyModal} onClose={() => setShowApiKeyModal(false)} />
       <CreateCategoryModal
         isOpen={showCreateCategoryModal}
         onClose={() => setShowCreateCategoryModal(false)}
